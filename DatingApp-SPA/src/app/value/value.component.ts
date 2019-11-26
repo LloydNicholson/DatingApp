@@ -1,4 +1,10 @@
 import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+
+interface Product {
+  id: number;
+  name: string;
+}
 
 @Component({
   selector: 'app-value',
@@ -6,10 +12,21 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./value.component.css']
 })
 export class ValueComponent implements OnInit {
+  values: any;
 
-  constructor() { }
+  constructor(private http: HttpClient) {
+  }
 
   ngOnInit() {
+    this.getValues();
+  }
+
+  getValues() {
+    this.http.get<Product[]>('http://localhost:5004/api/values').subscribe(res => {
+      this.values = res;
+    }, error => {
+      console.log(error);
+    });
   }
 
 }
