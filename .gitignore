@@ -1,0 +1,6 @@
+﻿# Rider application folder
+.[Ii]dea/
+
+bin/
+obj/
+.vscode/
