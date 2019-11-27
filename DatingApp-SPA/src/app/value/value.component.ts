@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 interface Product {
   id: number;
@@ -22,7 +23,7 @@ export class ValueComponent implements OnInit {
   }
 
   getValues() {
-    this.http.get<Product[]>('http://localhost:5004/api/values').subscribe(res => {
+    this.http.get<Product[]>(environment.datingAppApiServer + '/values').subscribe(res => {
       this.values = res;
     }, error => {
       console.log(error);
