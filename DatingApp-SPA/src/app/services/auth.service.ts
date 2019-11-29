@@ -22,4 +22,8 @@ export class AuthService {
         })
       );
   }
+
+  register(model: any) {
+    return this.http.post(environment.datingAppApiServer + '/auth/register', model);
+  }
 }
