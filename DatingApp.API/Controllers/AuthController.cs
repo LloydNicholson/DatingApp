@@ -47,46 +47,38 @@ namespace DatingApp.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(UserForLoginDto userForLoginDto)
         {
-            try
+            var userFromRepo =
+                await _authRepository.Login(userForLoginDto.Username.ToLower(), userForLoginDto.Password);
+
+            if (userFromRepo == null)
+                return Unauthorized();
+
+            var claims = new[]
             {
-//                throw new Exception("Computer says no!");
-                var userFromRepo =
-                    await _authRepository.Login(userForLoginDto.Username.ToLower(), userForLoginDto.Password);
+                new Claim(ClaimTypes.NameIdentifier, userFromRepo.Id.ToString()),
+                new Claim(ClaimTypes.Name, userFromRepo.Username),
+            };
 
-                if (userFromRepo == null)
-                    return Unauthorized();
+            var key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(_config.GetSection("AppSettings:Token").Value));
 
-                var claims = new[]
-                {
-                    new Claim(ClaimTypes.NameIdentifier, userFromRepo.Id.ToString()),
-                    new Claim(ClaimTypes.Name, userFromRepo.Username),
-                };
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
 
-                var key = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(_config.GetSection("AppSettings:Token").Value));
-
-                var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
-
-                var tokenDescriptor = new SecurityTokenDescriptor
-                {
-                    Subject = new ClaimsIdentity(claims),
-                    Expires = DateTime.Now.AddDays(1),
-                    SigningCredentials = creds
-                };
-
-                var tokenHandler = new JwtSecurityTokenHandler();
-
-                var token = tokenHandler.CreateToken(tokenDescriptor);
-
-                return Ok(new
-                {
-                    token = tokenHandler.WriteToken(token)
-                });
-            }
-            catch (Exception e)
+            var tokenDescriptor = new SecurityTokenDescriptor
             {
-                return StatusCode(500, e.Message);
-            }
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.Now.AddDays(1),
+                SigningCredentials = creds
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+
+            return Ok(new
+            {
+                token = tokenHandler.WriteToken(token)
+            });
         }
     }
 }
